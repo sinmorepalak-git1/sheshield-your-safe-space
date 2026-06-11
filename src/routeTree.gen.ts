@@ -17,6 +17,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as LocationRouteImport } from './routes/location'
 import { Route as HomeRouteImport } from './routes/home'
 import { Route as ForgotRouteImport } from './routes/forgot'
+import { Route as FakeCallRouteImport } from './routes/fake-call'
 import { Route as ContactsRouteImport } from './routes/contacts'
 import { Route as IndexRouteImport } from './routes/index'
 
@@ -60,6 +61,11 @@ const ForgotRoute = ForgotRouteImport.update({
   path: '/forgot',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FakeCallRoute = FakeCallRouteImport.update({
+  id: '/fake-call',
+  path: '/fake-call',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ContactsRoute = ContactsRouteImport.update({
   id: '/contacts',
   path: '/contacts',
@@ -74,6 +80,7 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/contacts': typeof ContactsRoute
+  '/fake-call': typeof FakeCallRoute
   '/forgot': typeof ForgotRoute
   '/home': typeof HomeRoute
   '/location': typeof LocationRoute
@@ -86,6 +93,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/contacts': typeof ContactsRoute
+  '/fake-call': typeof FakeCallRoute
   '/forgot': typeof ForgotRoute
   '/home': typeof HomeRoute
   '/location': typeof LocationRoute
@@ -99,6 +107,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/contacts': typeof ContactsRoute
+  '/fake-call': typeof FakeCallRoute
   '/forgot': typeof ForgotRoute
   '/home': typeof HomeRoute
   '/location': typeof LocationRoute
@@ -113,6 +122,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/contacts'
+    | '/fake-call'
     | '/forgot'
     | '/home'
     | '/location'
@@ -125,6 +135,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/contacts'
+    | '/fake-call'
     | '/forgot'
     | '/home'
     | '/location'
@@ -137,6 +148,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/contacts'
+    | '/fake-call'
     | '/forgot'
     | '/home'
     | '/location'
@@ -150,6 +162,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ContactsRoute: typeof ContactsRoute
+  FakeCallRoute: typeof FakeCallRoute
   ForgotRoute: typeof ForgotRoute
   HomeRoute: typeof HomeRoute
   LocationRoute: typeof LocationRoute
@@ -218,6 +231,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ForgotRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/fake-call': {
+      id: '/fake-call'
+      path: '/fake-call'
+      fullPath: '/fake-call'
+      preLoaderRoute: typeof FakeCallRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/contacts': {
       id: '/contacts'
       path: '/contacts'
@@ -238,6 +258,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ContactsRoute: ContactsRoute,
+  FakeCallRoute: FakeCallRoute,
   ForgotRoute: ForgotRoute,
   HomeRoute: HomeRoute,
   LocationRoute: LocationRoute,
