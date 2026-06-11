@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SosRouteImport } from './routes/sos'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as NearbyRouteImport } from './routes/nearby'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LocationRouteImport } from './routes/location'
 import { Route as HomeRouteImport } from './routes/home'
@@ -32,6 +33,11 @@ const SignupRoute = SignupRouteImport.update({
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NearbyRoute = NearbyRouteImport.update({
+  id: '/nearby',
+  path: '/nearby',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -72,6 +78,7 @@ export interface FileRoutesByFullPath {
   '/home': typeof HomeRoute
   '/location': typeof LocationRoute
   '/login': typeof LoginRoute
+  '/nearby': typeof NearbyRoute
   '/onboarding': typeof OnboardingRoute
   '/signup': typeof SignupRoute
   '/sos': typeof SosRoute
@@ -83,6 +90,7 @@ export interface FileRoutesByTo {
   '/home': typeof HomeRoute
   '/location': typeof LocationRoute
   '/login': typeof LoginRoute
+  '/nearby': typeof NearbyRoute
   '/onboarding': typeof OnboardingRoute
   '/signup': typeof SignupRoute
   '/sos': typeof SosRoute
@@ -95,6 +103,7 @@ export interface FileRoutesById {
   '/home': typeof HomeRoute
   '/location': typeof LocationRoute
   '/login': typeof LoginRoute
+  '/nearby': typeof NearbyRoute
   '/onboarding': typeof OnboardingRoute
   '/signup': typeof SignupRoute
   '/sos': typeof SosRoute
@@ -108,6 +117,7 @@ export interface FileRouteTypes {
     | '/home'
     | '/location'
     | '/login'
+    | '/nearby'
     | '/onboarding'
     | '/signup'
     | '/sos'
@@ -119,6 +129,7 @@ export interface FileRouteTypes {
     | '/home'
     | '/location'
     | '/login'
+    | '/nearby'
     | '/onboarding'
     | '/signup'
     | '/sos'
@@ -130,6 +141,7 @@ export interface FileRouteTypes {
     | '/home'
     | '/location'
     | '/login'
+    | '/nearby'
     | '/onboarding'
     | '/signup'
     | '/sos'
@@ -142,6 +154,7 @@ export interface RootRouteChildren {
   HomeRoute: typeof HomeRoute
   LocationRoute: typeof LocationRoute
   LoginRoute: typeof LoginRoute
+  NearbyRoute: typeof NearbyRoute
   OnboardingRoute: typeof OnboardingRoute
   SignupRoute: typeof SignupRoute
   SosRoute: typeof SosRoute
@@ -168,6 +181,13 @@ declare module '@tanstack/react-router' {
       path: '/onboarding'
       fullPath: '/onboarding'
       preLoaderRoute: typeof OnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/nearby': {
+      id: '/nearby'
+      path: '/nearby'
+      fullPath: '/nearby'
+      preLoaderRoute: typeof NearbyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -222,6 +242,7 @@ const rootRouteChildren: RootRouteChildren = {
   HomeRoute: HomeRoute,
   LocationRoute: LocationRoute,
   LoginRoute: LoginRoute,
+  NearbyRoute: NearbyRoute,
   OnboardingRoute: OnboardingRoute,
   SignupRoute: SignupRoute,
   SosRoute: SosRoute,
