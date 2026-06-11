@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VoiceShakeRouteImport } from './routes/voice-shake'
+import { Route as TipsRouteImport } from './routes/tips'
 import { Route as SosRouteImport } from './routes/sos'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
@@ -25,6 +26,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const VoiceShakeRoute = VoiceShakeRouteImport.update({
   id: '/voice-shake',
   path: '/voice-shake',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TipsRoute = TipsRouteImport.update({
+  id: '/tips',
+  path: '/tips',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SosRoute = SosRouteImport.update({
@@ -95,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof OnboardingRoute
   '/signup': typeof SignupRoute
   '/sos': typeof SosRoute
+  '/tips': typeof TipsRoute
   '/voice-shake': typeof VoiceShakeRoute
 }
 export interface FileRoutesByTo {
@@ -109,6 +116,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/signup': typeof SignupRoute
   '/sos': typeof SosRoute
+  '/tips': typeof TipsRoute
   '/voice-shake': typeof VoiceShakeRoute
 }
 export interface FileRoutesById {
@@ -124,6 +132,7 @@ export interface FileRoutesById {
   '/onboarding': typeof OnboardingRoute
   '/signup': typeof SignupRoute
   '/sos': typeof SosRoute
+  '/tips': typeof TipsRoute
   '/voice-shake': typeof VoiceShakeRoute
 }
 export interface FileRouteTypes {
@@ -140,6 +149,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/signup'
     | '/sos'
+    | '/tips'
     | '/voice-shake'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -154,6 +164,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/signup'
     | '/sos'
+    | '/tips'
     | '/voice-shake'
   id:
     | '__root__'
@@ -168,6 +179,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/signup'
     | '/sos'
+    | '/tips'
     | '/voice-shake'
   fileRoutesById: FileRoutesById
 }
@@ -183,6 +195,7 @@ export interface RootRouteChildren {
   OnboardingRoute: typeof OnboardingRoute
   SignupRoute: typeof SignupRoute
   SosRoute: typeof SosRoute
+  TipsRoute: typeof TipsRoute
   VoiceShakeRoute: typeof VoiceShakeRoute
 }
 
@@ -193,6 +206,13 @@ declare module '@tanstack/react-router' {
       path: '/voice-shake'
       fullPath: '/voice-shake'
       preLoaderRoute: typeof VoiceShakeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tips': {
+      id: '/tips'
+      path: '/tips'
+      fullPath: '/tips'
+      preLoaderRoute: typeof TipsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sos': {
@@ -287,6 +307,7 @@ const rootRouteChildren: RootRouteChildren = {
   OnboardingRoute: OnboardingRoute,
   SignupRoute: SignupRoute,
   SosRoute: SosRoute,
+  TipsRoute: TipsRoute,
   VoiceShakeRoute: VoiceShakeRoute,
 }
 export const routeTree = rootRouteImport
