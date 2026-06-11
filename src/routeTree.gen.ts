@@ -9,8 +9,86 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VoiceShakeRouteImport } from './routes/voice-shake'
+import { Route as TipsRouteImport } from './routes/tips'
+import { Route as SosRouteImport } from './routes/sos'
+import { Route as SignupRouteImport } from './routes/signup'
+import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as NearbyRouteImport } from './routes/nearby'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as LocationRouteImport } from './routes/location'
+import { Route as HomeRouteImport } from './routes/home'
+import { Route as ForgotRouteImport } from './routes/forgot'
+import { Route as FakeCallRouteImport } from './routes/fake-call'
+import { Route as ContactsRouteImport } from './routes/contacts'
 import { Route as IndexRouteImport } from './routes/index'
 
+const VoiceShakeRoute = VoiceShakeRouteImport.update({
+  id: '/voice-shake',
+  path: '/voice-shake',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TipsRoute = TipsRouteImport.update({
+  id: '/tips',
+  path: '/tips',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SosRoute = SosRouteImport.update({
+  id: '/sos',
+  path: '/sos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NearbyRoute = NearbyRouteImport.update({
+  id: '/nearby',
+  path: '/nearby',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LocationRoute = LocationRouteImport.update({
+  id: '/location',
+  path: '/location',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HomeRoute = HomeRouteImport.update({
+  id: '/home',
+  path: '/home',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForgotRoute = ForgotRouteImport.update({
+  id: '/forgot',
+  path: '/forgot',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FakeCallRoute = FakeCallRouteImport.update({
+  id: '/fake-call',
+  path: '/fake-call',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactsRoute = ContactsRouteImport.update({
+  id: '/contacts',
+  path: '/contacts',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +97,214 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/contacts': typeof ContactsRoute
+  '/fake-call': typeof FakeCallRoute
+  '/forgot': typeof ForgotRoute
+  '/home': typeof HomeRoute
+  '/location': typeof LocationRoute
+  '/login': typeof LoginRoute
+  '/nearby': typeof NearbyRoute
+  '/onboarding': typeof OnboardingRoute
+  '/profile': typeof ProfileRoute
+  '/signup': typeof SignupRoute
+  '/sos': typeof SosRoute
+  '/tips': typeof TipsRoute
+  '/voice-shake': typeof VoiceShakeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/contacts': typeof ContactsRoute
+  '/fake-call': typeof FakeCallRoute
+  '/forgot': typeof ForgotRoute
+  '/home': typeof HomeRoute
+  '/location': typeof LocationRoute
+  '/login': typeof LoginRoute
+  '/nearby': typeof NearbyRoute
+  '/onboarding': typeof OnboardingRoute
+  '/profile': typeof ProfileRoute
+  '/signup': typeof SignupRoute
+  '/sos': typeof SosRoute
+  '/tips': typeof TipsRoute
+  '/voice-shake': typeof VoiceShakeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/contacts': typeof ContactsRoute
+  '/fake-call': typeof FakeCallRoute
+  '/forgot': typeof ForgotRoute
+  '/home': typeof HomeRoute
+  '/location': typeof LocationRoute
+  '/login': typeof LoginRoute
+  '/nearby': typeof NearbyRoute
+  '/onboarding': typeof OnboardingRoute
+  '/profile': typeof ProfileRoute
+  '/signup': typeof SignupRoute
+  '/sos': typeof SosRoute
+  '/tips': typeof TipsRoute
+  '/voice-shake': typeof VoiceShakeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/contacts'
+    | '/fake-call'
+    | '/forgot'
+    | '/home'
+    | '/location'
+    | '/login'
+    | '/nearby'
+    | '/onboarding'
+    | '/profile'
+    | '/signup'
+    | '/sos'
+    | '/tips'
+    | '/voice-shake'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/contacts'
+    | '/fake-call'
+    | '/forgot'
+    | '/home'
+    | '/location'
+    | '/login'
+    | '/nearby'
+    | '/onboarding'
+    | '/profile'
+    | '/signup'
+    | '/sos'
+    | '/tips'
+    | '/voice-shake'
+  id:
+    | '__root__'
+    | '/'
+    | '/contacts'
+    | '/fake-call'
+    | '/forgot'
+    | '/home'
+    | '/location'
+    | '/login'
+    | '/nearby'
+    | '/onboarding'
+    | '/profile'
+    | '/signup'
+    | '/sos'
+    | '/tips'
+    | '/voice-shake'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ContactsRoute: typeof ContactsRoute
+  FakeCallRoute: typeof FakeCallRoute
+  ForgotRoute: typeof ForgotRoute
+  HomeRoute: typeof HomeRoute
+  LocationRoute: typeof LocationRoute
+  LoginRoute: typeof LoginRoute
+  NearbyRoute: typeof NearbyRoute
+  OnboardingRoute: typeof OnboardingRoute
+  ProfileRoute: typeof ProfileRoute
+  SignupRoute: typeof SignupRoute
+  SosRoute: typeof SosRoute
+  TipsRoute: typeof TipsRoute
+  VoiceShakeRoute: typeof VoiceShakeRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/voice-shake': {
+      id: '/voice-shake'
+      path: '/voice-shake'
+      fullPath: '/voice-shake'
+      preLoaderRoute: typeof VoiceShakeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tips': {
+      id: '/tips'
+      path: '/tips'
+      fullPath: '/tips'
+      preLoaderRoute: typeof TipsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sos': {
+      id: '/sos'
+      path: '/sos'
+      fullPath: '/sos'
+      preLoaderRoute: typeof SosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/nearby': {
+      id: '/nearby'
+      path: '/nearby'
+      fullPath: '/nearby'
+      preLoaderRoute: typeof NearbyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/location': {
+      id: '/location'
+      path: '/location'
+      fullPath: '/location'
+      preLoaderRoute: typeof LocationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/home': {
+      id: '/home'
+      path: '/home'
+      fullPath: '/home'
+      preLoaderRoute: typeof HomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot': {
+      id: '/forgot'
+      path: '/forgot'
+      fullPath: '/forgot'
+      preLoaderRoute: typeof ForgotRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/fake-call': {
+      id: '/fake-call'
+      path: '/fake-call'
+      fullPath: '/fake-call'
+      preLoaderRoute: typeof FakeCallRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contacts': {
+      id: '/contacts'
+      path: '/contacts'
+      fullPath: '/contacts'
+      preLoaderRoute: typeof ContactsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,17 +317,20 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ContactsRoute: ContactsRoute,
+  FakeCallRoute: FakeCallRoute,
+  ForgotRoute: ForgotRoute,
+  HomeRoute: HomeRoute,
+  LocationRoute: LocationRoute,
+  LoginRoute: LoginRoute,
+  NearbyRoute: NearbyRoute,
+  OnboardingRoute: OnboardingRoute,
+  ProfileRoute: ProfileRoute,
+  SignupRoute: SignupRoute,
+  SosRoute: SosRoute,
+  TipsRoute: TipsRoute,
+  VoiceShakeRoute: VoiceShakeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
