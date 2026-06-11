@@ -13,6 +13,7 @@ import { Route as SosRouteImport } from './routes/sos'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as LocationRouteImport } from './routes/location'
 import { Route as HomeRouteImport } from './routes/home'
 import { Route as ForgotRouteImport } from './routes/forgot'
 import { Route as ContactsRouteImport } from './routes/contacts'
@@ -36,6 +37,11 @@ const OnboardingRoute = OnboardingRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LocationRoute = LocationRouteImport.update({
+  id: '/location',
+  path: '/location',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HomeRoute = HomeRouteImport.update({
@@ -64,6 +70,7 @@ export interface FileRoutesByFullPath {
   '/contacts': typeof ContactsRoute
   '/forgot': typeof ForgotRoute
   '/home': typeof HomeRoute
+  '/location': typeof LocationRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/signup': typeof SignupRoute
@@ -74,6 +81,7 @@ export interface FileRoutesByTo {
   '/contacts': typeof ContactsRoute
   '/forgot': typeof ForgotRoute
   '/home': typeof HomeRoute
+  '/location': typeof LocationRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/signup': typeof SignupRoute
@@ -85,6 +93,7 @@ export interface FileRoutesById {
   '/contacts': typeof ContactsRoute
   '/forgot': typeof ForgotRoute
   '/home': typeof HomeRoute
+  '/location': typeof LocationRoute
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/signup': typeof SignupRoute
@@ -97,6 +106,7 @@ export interface FileRouteTypes {
     | '/contacts'
     | '/forgot'
     | '/home'
+    | '/location'
     | '/login'
     | '/onboarding'
     | '/signup'
@@ -107,6 +117,7 @@ export interface FileRouteTypes {
     | '/contacts'
     | '/forgot'
     | '/home'
+    | '/location'
     | '/login'
     | '/onboarding'
     | '/signup'
@@ -117,6 +128,7 @@ export interface FileRouteTypes {
     | '/contacts'
     | '/forgot'
     | '/home'
+    | '/location'
     | '/login'
     | '/onboarding'
     | '/signup'
@@ -128,6 +140,7 @@ export interface RootRouteChildren {
   ContactsRoute: typeof ContactsRoute
   ForgotRoute: typeof ForgotRoute
   HomeRoute: typeof HomeRoute
+  LocationRoute: typeof LocationRoute
   LoginRoute: typeof LoginRoute
   OnboardingRoute: typeof OnboardingRoute
   SignupRoute: typeof SignupRoute
@@ -162,6 +175,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/location': {
+      id: '/location'
+      path: '/location'
+      fullPath: '/location'
+      preLoaderRoute: typeof LocationRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/home': {
@@ -200,6 +220,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContactsRoute: ContactsRoute,
   ForgotRoute: ForgotRoute,
   HomeRoute: HomeRoute,
+  LocationRoute: LocationRoute,
   LoginRoute: LoginRoute,
   OnboardingRoute: OnboardingRoute,
   SignupRoute: SignupRoute,
