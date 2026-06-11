@@ -13,6 +13,7 @@ import { Route as VoiceShakeRouteImport } from './routes/voice-shake'
 import { Route as TipsRouteImport } from './routes/tips'
 import { Route as SosRouteImport } from './routes/sos'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as NearbyRouteImport } from './routes/nearby'
 import { Route as LoginRouteImport } from './routes/login'
@@ -41,6 +42,11 @@ const SosRoute = SosRouteImport.update({
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OnboardingRoute = OnboardingRouteImport.update({
@@ -99,6 +105,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/nearby': typeof NearbyRoute
   '/onboarding': typeof OnboardingRoute
+  '/profile': typeof ProfileRoute
   '/signup': typeof SignupRoute
   '/sos': typeof SosRoute
   '/tips': typeof TipsRoute
@@ -114,6 +121,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/nearby': typeof NearbyRoute
   '/onboarding': typeof OnboardingRoute
+  '/profile': typeof ProfileRoute
   '/signup': typeof SignupRoute
   '/sos': typeof SosRoute
   '/tips': typeof TipsRoute
@@ -130,6 +138,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/nearby': typeof NearbyRoute
   '/onboarding': typeof OnboardingRoute
+  '/profile': typeof ProfileRoute
   '/signup': typeof SignupRoute
   '/sos': typeof SosRoute
   '/tips': typeof TipsRoute
@@ -147,6 +156,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/nearby'
     | '/onboarding'
+    | '/profile'
     | '/signup'
     | '/sos'
     | '/tips'
@@ -162,6 +172,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/nearby'
     | '/onboarding'
+    | '/profile'
     | '/signup'
     | '/sos'
     | '/tips'
@@ -177,6 +188,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/nearby'
     | '/onboarding'
+    | '/profile'
     | '/signup'
     | '/sos'
     | '/tips'
@@ -193,6 +205,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   NearbyRoute: typeof NearbyRoute
   OnboardingRoute: typeof OnboardingRoute
+  ProfileRoute: typeof ProfileRoute
   SignupRoute: typeof SignupRoute
   SosRoute: typeof SosRoute
   TipsRoute: typeof TipsRoute
@@ -227,6 +240,13 @@ declare module '@tanstack/react-router' {
       path: '/signup'
       fullPath: '/signup'
       preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/onboarding': {
@@ -305,6 +325,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   NearbyRoute: NearbyRoute,
   OnboardingRoute: OnboardingRoute,
+  ProfileRoute: ProfileRoute,
   SignupRoute: SignupRoute,
   SosRoute: SosRoute,
   TipsRoute: TipsRoute,
