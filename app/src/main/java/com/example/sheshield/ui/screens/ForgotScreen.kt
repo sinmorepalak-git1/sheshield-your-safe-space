@@ -1,5 +1,6 @@
 package com.example.sheshield.ui.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -12,18 +13,27 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.sheshield.navigation.Screen
 import com.example.sheshield.ui.components.LoginField
 import com.example.sheshield.ui.theme.GradientPrimaryEnd
 import com.example.sheshield.ui.theme.GradientPrimaryStart
+import com.example.sheshield.repository.AuthRepository
+import kotlinx.coroutines.launch
 
 @Composable
 fun ForgotScreen(navController: NavController) {
-    var email by remember { mutableStateOf("priya@example.com") }
+    var email by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
+    
+    val repository = remember { AuthRepository() }
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier
@@ -73,13 +83,32 @@ fun ForgotScreen(navController: NavController) {
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
-            onClick = { navController.navigate(Screen.Login.route) },
+            onClick = {
+                if (email.isNotEmpty()) {
+                    isLoading = true
+                    scope.launch {
+                        val result = repository.sendPasswordResetEmail(email)
+                        isLoading = false
+                        result.onSuccess {
+                            Toast.makeText(context, "Reset link sent to your email", Toast.LENGTH_SHORT).show()
+                            navController.navigate(Screen.Login.route) {
+                                popUpTo(Screen.Forgot.route) { inclusive = true }
+                            }
+                        }.onFailure {
+                            Toast.makeText(context, it.message ?: "Failed to send email", Toast.LENGTH_LONG).show()
+                        }
+                    }
+                } else {
+                    Toast.makeText(context, "Please enter your email", Toast.LENGTH_SHORT).show()
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
             shape = RoundedCornerShape(16.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-            contentPadding = PaddingValues()
+            contentPadding = PaddingValues(),
+            enabled = !isLoading
         ) {
             Box(
                 modifier = Modifier
@@ -92,7 +121,11 @@ fun ForgotScreen(navController: NavController) {
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                Text("Send reset link", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                if (isLoading) {
+                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                } else {
+                    Text("Send reset link", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                }
             }
         }
 

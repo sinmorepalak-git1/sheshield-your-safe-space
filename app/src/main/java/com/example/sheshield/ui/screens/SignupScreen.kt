@@ -1,5 +1,6 @@
 package com.example.sheshield.ui.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,21 +15,45 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.sheshield.navigation.Screen
 import com.example.sheshield.ui.components.LoginField
 import com.example.sheshield.ui.theme.GradientPrimaryEnd
 import com.example.sheshield.ui.theme.GradientPrimaryStart
+import com.example.sheshield.ui.viewmodels.AuthState
+import com.example.sheshield.ui.viewmodels.AuthViewModel
 
 @Composable
-fun SignupScreen(navController: NavController) {
-    var name by remember { mutableStateOf("Priya Sharma") }
-    var email by remember { mutableStateOf("priya@example.com") }
-    var phone by remember { mutableStateOf("+91 98765 43210") }
-    var password by remember { mutableStateOf("••••••••") }
+fun SignupScreen(navController: NavController, viewModel: AuthViewModel = viewModel()) {
+    var name by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var phone by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+
+    val authState by viewModel.authState.collectAsState()
+    val context = LocalContext.current
+
+    LaunchedEffect(authState) {
+        when (authState) {
+            is AuthState.Success -> {
+                Toast.makeText(context, (authState as AuthState.Success).message, Toast.LENGTH_SHORT).show()
+                navController.navigate(Screen.Home.route) {
+                    popUpTo(Screen.Signup.route) { inclusive = true }
+                }
+                viewModel.resetAuthState()
+            }
+            is AuthState.Error -> {
+                Toast.makeText(context, (authState as AuthState.Error).message, Toast.LENGTH_LONG).show()
+                viewModel.resetAuthState()
+            }
+            else -> {}
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -89,13 +114,20 @@ fun SignupScreen(navController: NavController) {
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
-            onClick = { navController.navigate(Screen.Home.route) },
+            onClick = {
+                if (name.isNotEmpty() && email.isNotEmpty() && password.isNotEmpty()) {
+                    viewModel.signUp(email, name, phone, password)
+                } else {
+                    Toast.makeText(context, "Please fill required fields", Toast.LENGTH_SHORT).show()
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
             shape = RoundedCornerShape(16.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-            contentPadding = PaddingValues()
+            contentPadding = PaddingValues(),
+            enabled = authState !is AuthState.Loading
         ) {
             Box(
                 modifier = Modifier
@@ -108,7 +140,11 @@ fun SignupScreen(navController: NavController) {
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                Text("Create Account", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                if (authState is AuthState.Loading) {
+                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                } else {
+                    Text("Create Account", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                }
             }
         }
 

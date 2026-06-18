@@ -1,5 +1,6 @@
 package com.example.sheshield.ui.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -15,22 +16,46 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.sheshield.navigation.Screen
 import com.example.sheshield.ui.components.LoginField
 import com.example.sheshield.ui.theme.GradientPrimaryEnd
 import com.example.sheshield.ui.theme.GradientPrimaryStart
+import com.example.sheshield.ui.viewmodels.AuthState
+import com.example.sheshield.ui.viewmodels.AuthViewModel
 
 @Composable
-fun LoginScreen(navController: NavController) {
-    var email by remember { mutableStateOf("priya@example.com") }
-    var password by remember { mutableStateOf("••••••••") }
+fun LoginScreen(navController: NavController, viewModel: AuthViewModel = viewModel()) {
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+
+    val authState by viewModel.authState.collectAsState()
+    val context = LocalContext.current
+
+    LaunchedEffect(authState) {
+        when (authState) {
+            is AuthState.Success -> {
+                Toast.makeText(context, (authState as AuthState.Success).message, Toast.LENGTH_SHORT).show()
+                navController.navigate(Screen.Home.route) {
+                    popUpTo(Screen.Login.route) { inclusive = true }
+                }
+                viewModel.resetAuthState()
+            }
+            is AuthState.Error -> {
+                Toast.makeText(context, (authState as AuthState.Error).message, Toast.LENGTH_LONG).show()
+                viewModel.resetAuthState()
+            }
+            else -> {}
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -88,7 +113,7 @@ fun LoginScreen(navController: NavController) {
                 .padding(vertical = 8.dp),
             horizontalArrangement = Arrangement.End
         ) {
-            TextButton(onClick = { /* Handle Forgot Password */ }) {
+            TextButton(onClick = { navController.navigate(Screen.Forgot.route) }) {
                 Text(
                     "Forgot password?",
                     color = MaterialTheme.colorScheme.primary,
@@ -102,13 +127,20 @@ fun LoginScreen(navController: NavController) {
 
         // Sign In Button
         Button(
-            onClick = { navController.navigate(Screen.Home.route) },
+            onClick = {
+                if (email.isNotEmpty() && password.isNotEmpty()) {
+                    viewModel.login(email, password)
+                } else {
+                    Toast.makeText(context, "Please enter email and password", Toast.LENGTH_SHORT).show()
+                }
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
             shape = RoundedCornerShape(16.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-            contentPadding = PaddingValues()
+            contentPadding = PaddingValues(),
+            enabled = authState !is AuthState.Loading
         ) {
             Box(
                 modifier = Modifier
@@ -121,7 +153,11 @@ fun LoginScreen(navController: NavController) {
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                Text("Sign In", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                if (authState is AuthState.Loading) {
+                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                } else {
+                    Text("Sign In", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                }
             }
         }
 
@@ -144,9 +180,9 @@ fun LoginScreen(navController: NavController) {
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Google Sign In Button
+        // Google Sign In Button (Placeholder)
         OutlinedButton(
-            onClick = { navController.navigate(Screen.Home.route) },
+            onClick = { /* Logic for Google Auth if needed */ },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
@@ -154,7 +190,6 @@ fun LoginScreen(navController: NavController) {
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                // Placeholder for Google Icon
                 Box(
                     modifier = Modifier
                         .size(20.dp)

@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.sheshield.ui.components.BottomNavBar
 import com.example.sheshield.ui.components.FakeMap
@@ -24,14 +25,17 @@ import com.example.sheshield.ui.components.ScreenHeader
 import com.example.sheshield.ui.components.StatBox
 import com.example.sheshield.ui.components.shadow
 import com.example.sheshield.ui.theme.SOS
+import com.example.sheshield.ui.viewmodels.ContactViewModel
 
 @Composable
-fun LocationScreen(navController: NavController) {
+fun LocationScreen(navController: NavController, contactViewModel: ContactViewModel = viewModel()) {
+    val contacts by contactViewModel.allContacts.collectAsState(initial = emptyList())
+    
     Scaffold(
         topBar = {
             ScreenHeader(
                 title = "Live Location",
-                subtitle = "Sharing with 3 contacts",
+                subtitle = "Sharing with ${contacts.size} contacts",
                 onBackClick = { navController.popBackStack() }
             )
         },
@@ -174,9 +178,7 @@ fun LocationScreen(navController: NavController) {
                             Icon(Icons.Default.People, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = buildString {
-                                    append("Mom, Aarav, Neha ")
-                                },
+                                text = if (contacts.isEmpty()) "No one " else contacts.joinToString(", ") { it.name } + " ",
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.SemiBold
                             )

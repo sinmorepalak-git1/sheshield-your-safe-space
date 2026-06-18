@@ -1,5 +1,6 @@
 package com.example.sheshield.ui.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -16,22 +17,49 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.sheshield.data.User
 import com.example.sheshield.navigation.Screen
 import com.example.sheshield.ui.components.BottomNavBar
 import com.example.sheshield.ui.components.ScreenHeader
 import com.example.sheshield.ui.theme.GradientPrimaryEnd
 import com.example.sheshield.ui.theme.GradientPrimaryStart
 import com.example.sheshield.ui.theme.SOS
+import com.example.sheshield.ui.viewmodels.AuthViewModel
+import com.example.sheshield.ui.viewmodels.ProfileViewModel
 
 @Composable
-fun ProfileScreen(navController: NavController) {
+fun ProfileScreen(
+    navController: NavController,
+    profileViewModel: ProfileViewModel = viewModel(),
+    authViewModel: AuthViewModel = viewModel()
+) {
+    val userProfile by profileViewModel.userProfile.collectAsState()
+    val isLoading by profileViewModel.isLoading.collectAsState()
+    val updateStatus by profileViewModel.updateStatus.collectAsState()
+
     var darkMode by remember { mutableStateOf(false) }
     var notifications by remember { mutableStateOf(true) }
     var stealthMode by remember { mutableStateOf(true) }
+    var showEditDialog by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
+
+    LaunchedEffect(updateStatus) {
+        updateStatus?.let { result ->
+            if (result.isSuccess) {
+                Toast.makeText(context, "Profile updated", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(context, "Update failed: ${result.exceptionOrNull()?.message}", Toast.LENGTH_SHORT).show()
+            }
+            profileViewModel.resetUpdateStatus()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -42,100 +70,122 @@ fun ProfileScreen(navController: NavController) {
         },
         bottomBar = { BottomNavBar(navController) }
     ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .background(MaterialTheme.colorScheme.background),
-            contentPadding = PaddingValues(20.dp)
-        ) {
-            item {
-                ProfileHeader()
-                Spacer(modifier = Modifier.height(16.dp))
-                StatsRow()
-                Spacer(modifier = Modifier.height(24.dp))
+        if (isLoading && userProfile == null) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
             }
-
-            item {
-                SettingsGroup(title = "Preferences") {
-                    SettingsRow(
-                        icon = if (darkMode) Icons.Default.DarkMode else Icons.Default.LightMode,
-                        label = "Dark mode",
-                        trailing = { Switch(checked = darkMode, onCheckedChange = { darkMode = it }) }
-                    )
-                    SettingsRow(
-                        icon = Icons.Default.Notifications,
-                        label = "Notifications",
-                        sub = "SOS, check-in & safety alerts",
-                        trailing = { Switch(checked = notifications, onCheckedChange = { notifications = it }) }
-                    )
-                    SettingsRow(
-                        icon = Icons.Default.Mic,
-                        label = "Voice & shake",
-                        sub = "Hands-free SOS triggers",
-                        onClick = { navController.navigate(Screen.VoiceShake.route) }
-                    )
-                    SettingsRow(
-                        icon = Icons.Default.Language,
-                        label = "Language",
-                        sub = "English (India)"
-                    )
-                }
-                
-                Spacer(modifier = Modifier.height(24.dp))
-            }
-
-            item {
-                SettingsGroup(title = "Privacy") {
-                    SettingsRow(
-                        icon = Icons.Default.Lock,
-                        label = "Stealth mode",
-                        sub = "Disguise app icon as calculator",
-                        trailing = { Switch(checked = stealthMode, onCheckedChange = { stealthMode = it }) }
-                    )
-                    SettingsRow(
-                        icon = Icons.Default.Lock,
-                        label = "App lock",
-                        sub = "Require PIN to open"
-                    )
-                }
-                
-                Spacer(modifier = Modifier.height(24.dp))
-            }
-
-            item {
-                SettingsGroup(title = "Support") {
-                    SettingsRow(icon = Icons.Default.Help, label = "Help & FAQ")
-                    SettingsRow(icon = Icons.Default.Info, label = "About SheShield", sub = "Version 1.0.0")
-                }
-                
-                Spacer(modifier = Modifier.height(24.dp))
-            }
-
-            item {
-                OutlinedButton(
-                    onClick = { navController.navigate(Screen.Login.route) { popUpTo(0) } },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    border = BorderStroke(1.dp, SOS.copy(alpha = 0.3f)),
-                    colors = ButtonDefaults.outlinedButtonColors(containerColor = SOS.copy(alpha = 0.05f))
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Logout, contentDescription = null, tint = SOS, modifier = Modifier.size(18.dp))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Log out", color = SOS, fontWeight = FontWeight.Bold)
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .background(MaterialTheme.colorScheme.background),
+                contentPadding = PaddingValues(20.dp)
+            ) {
+                item {
+                    userProfile?.let { user ->
+                        ProfileHeader(user = user, onEditClick = { showEditDialog = true })
                     }
+                    Spacer(modifier = Modifier.height(16.dp))
+                    StatsRow()
+                    Spacer(modifier = Modifier.height(24.dp))
                 }
-                Spacer(modifier = Modifier.height(12.dp))
+
+                item {
+                    SettingsGroup(title = "Preferences") {
+                        SettingsRow(
+                            icon = if (darkMode) Icons.Default.DarkMode else Icons.Default.LightMode,
+                            label = "Dark mode",
+                            trailing = { Switch(checked = darkMode, onCheckedChange = { darkMode = it }) }
+                        )
+                        SettingsRow(
+                            icon = Icons.Default.Notifications,
+                            label = "Notifications",
+                            sub = "SOS, check-in & safety alerts",
+                            trailing = { Switch(checked = notifications, onCheckedChange = { notifications = it }) }
+                        )
+                        SettingsRow(
+                            icon = Icons.Default.Mic,
+                            label = "Voice & shake",
+                            sub = "Hands-free SOS triggers",
+                            onClick = { navController.navigate(Screen.VoiceShake.route) }
+                        )
+                        SettingsRow(
+                            icon = Icons.Default.Language,
+                            label = "Language",
+                            sub = "English (India)"
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
+
+                item {
+                    SettingsGroup(title = "Privacy") {
+                        SettingsRow(
+                            icon = Icons.Default.Lock,
+                            label = "Stealth mode",
+                            sub = "Disguise app icon as calculator",
+                            trailing = { Switch(checked = stealthMode, onCheckedChange = { stealthMode = it }) }
+                        )
+                        SettingsRow(
+                            icon = Icons.Default.Lock,
+                            label = "App lock",
+                            sub = "Require PIN to open"
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
+
+                item {
+                    SettingsGroup(title = "Support") {
+                        SettingsRow(icon = Icons.Default.Help, label = "Help & FAQ")
+                        SettingsRow(icon = Icons.Default.Info, label = "About SheShield", sub = "Version 1.0.0")
+                    }
+                    
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
+
+                item {
+                    OutlinedButton(
+                        onClick = { 
+                            authViewModel.logout()
+                            navController.navigate(Screen.Login.route) { popUpTo(0) } 
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        border = BorderStroke(1.dp, SOS.copy(alpha = 0.3f)),
+                        colors = ButtonDefaults.outlinedButtonColors(containerColor = SOS.copy(alpha = 0.05f))
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Logout, contentDescription = null, tint = SOS, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Log out", color = SOS, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
             }
+        }
+
+        if (showEditDialog) {
+            EditProfileDialog(
+                user = userProfile,
+                onDismiss = { showEditDialog = false },
+                onSave = { name, phone ->
+                    profileViewModel.updateUserProfile(name, phone)
+                    showEditDialog = false
+                }
+            )
         }
     }
 }
 
 @Composable
-fun ProfileHeader() {
+fun ProfileHeader(user: User, onEditClick: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
@@ -155,16 +205,19 @@ fun ProfileHeader() {
                     .background(Color.White.copy(alpha = 0.25f), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
-                Text("P", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
+                val initial = if (user.name.isNotEmpty()) user.name[0].uppercaseChar().toString() else "?"
+                Text(initial, color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Bold)
             }
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text("Priya Sharma", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
-                Text("priya@example.com", color = Color.White.copy(alpha = 0.85f), fontSize = 12.sp)
-                Text("+91 98765 43210", color = Color.White.copy(alpha = 0.85f), fontSize = 12.sp)
+                Text(user.name.ifEmpty { "User" }, color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.ExtraBold)
+                Text(user.email, color = Color.White.copy(alpha = 0.85f), fontSize = 12.sp)
+                if (user.phone.isNotEmpty()) {
+                    Text(user.phone, color = Color.White.copy(alpha = 0.85f), fontSize = 12.sp)
+                }
             }
             Surface(
-                onClick = { },
+                onClick = onEditClick,
                 color = Color.White.copy(alpha = 0.2f),
                 shape = CircleShape
             ) {
@@ -178,6 +231,54 @@ fun ProfileHeader() {
             }
         }
     }
+}
+
+@Composable
+fun EditProfileDialog(
+    user: User?,
+    onDismiss: () -> Unit,
+    onSave: (String, String) -> Unit
+) {
+    var name by remember { mutableStateOf(user?.name ?: "") }
+    var phone by remember { mutableStateOf(user?.phone ?: "") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Edit Profile") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Full Name") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                )
+                OutlinedTextField(
+                    value = phone,
+                    onValueChange = { phone = it },
+                    label = { Text("Phone Number") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { onSave(name, phone) },
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text("Save Changes")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }
 
 @Composable

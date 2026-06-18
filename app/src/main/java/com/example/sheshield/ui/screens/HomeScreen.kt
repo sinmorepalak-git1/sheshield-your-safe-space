@@ -4,6 +4,7 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -13,24 +14,26 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.sheshield.navigation.Screen
 import com.example.sheshield.ui.components.BottomNavBar
 import com.example.sheshield.ui.theme.*
+import com.example.sheshield.ui.viewmodels.ContactViewModel
+import com.example.sheshield.ui.viewmodels.HomeViewModel
 
 data class QuickAction(
     val route: String,
@@ -50,7 +53,14 @@ val quickActions = listOf(
 )
 
 @Composable
-fun HomeScreen(navController: NavController) {
+fun HomeScreen(
+    navController: NavController,
+    contactViewModel: ContactViewModel = viewModel(),
+    homeViewModel: HomeViewModel = viewModel()
+) {
+    val contacts by contactViewModel.allContacts.collectAsState(initial = emptyList())
+    val userProfile by homeViewModel.userProfile.collectAsState()
+
     Scaffold(
         bottomBar = { BottomNavBar(navController) }
     ) { paddingValues ->
@@ -60,7 +70,11 @@ fun HomeScreen(navController: NavController) {
                 .padding(paddingValues)
                 .background(MaterialTheme.colorScheme.background)
         ) {
-            HeaderSection()
+            HeaderSection(
+                userName = homeViewModel.getGreetingName(userProfile),
+                userInitial = homeViewModel.getUserInitial(userProfile),
+                contactsCount = contacts.size
+            )
             
             Column(
                 modifier = Modifier
@@ -82,13 +96,18 @@ fun HomeScreen(navController: NavController) {
 }
 
 @Composable
-fun HeaderSection() {
+fun HeaderSection(userName: String, userInitial: String, contactsCount: Int) {
+    val isDark = isSystemInDarkTheme()
+    
+    // Theme-aware gradient to ensure text readability in both modes
+    val topGradientColor = if (isDark) Color(0xFF2D242D) else Color(0xFFFFF5F8)
+    
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .background(
                 brush = Brush.verticalGradient(
-                    colors = listOf(Color(0xFFFFF5F8), Background)
+                    colors = listOf(topGradientColor, MaterialTheme.colorScheme.background)
                 )
             )
             .padding(horizontal = 20.dp, vertical = 24.dp)
@@ -98,16 +117,21 @@ fun HeaderSection() {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = "Good evening",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = if (isDark) Color.LightGray.copy(alpha = 0.7f) else Color.Gray
                 )
                 Text(
-                    text = "Priya 👋",
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.ExtraBold
+                    text = "$userName 👋",
+                    style = MaterialTheme.typography.headlineLarge.copy(
+                        fontSize = 30.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (isDark) Color.White else Color(0xFF1A1A1A)
+                    ),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
             
@@ -123,7 +147,7 @@ fun HeaderSection() {
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "P",
+                    text = userInitial,
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp
@@ -156,13 +180,14 @@ fun HeaderSection() {
             }
             Spacer(modifier = Modifier.width(12.dp))
             Column {
+                val statusText = if (contactsCount > 0) "You're in a safe zone" else "Safety setup incomplete"
                 Text(
-                    text = "You're in a safe zone",
+                    text = statusText,
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp
                 )
                 Text(
-                    text = "3 contacts watching · Location ON",
+                    text = "$contactsCount contacts watching · Location ON",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

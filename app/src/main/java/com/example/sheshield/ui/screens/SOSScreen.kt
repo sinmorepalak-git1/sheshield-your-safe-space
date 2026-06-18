@@ -1,12 +1,20 @@
 package com.example.sheshield.ui.screens
 
+import android.Manifest
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -21,48 +29,92 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.sheshield.data.ContactEntity
 import com.example.sheshield.navigation.Screen
 import com.example.sheshield.ui.theme.GradientSOSEnd
 import com.example.sheshield.ui.theme.GradientSOSStart
-import com.example.sheshield.ui.theme.SOS
-import kotlinx.coroutines.delay
-
-data class Contact(val name: String, val phone: String, val initial: String, val tint: Color)
-
-val emergencyContacts = listOf(
-    Contact("Mom", "+91 98765 12345", "M", Color(0xFFFECDD3)),
-    Contact("Aarav (Brother)", "+91 99887 65432", "A", Color(0xFFF5D0FE)),
-    Contact("Neha (Best Friend)", "+91 90123 45678", "N", Color(0xFFE9D5FF))
-)
+import com.example.sheshield.ui.viewmodels.ContactViewModel
+import com.example.sheshield.ui.viewmodels.SOSStatus
+import com.example.sheshield.ui.viewmodels.SOSViewModel
 
 @Composable
-fun SOSScreen(navController: NavController) {
-    var count by remember { mutableIntStateOf(5) }
-    var isActive by remember { mutableStateOf(false) }
+fun SOSScreen(
+    navController: NavController,
+    contactViewModel: ContactViewModel = viewModel(),
+    sosViewModel: SOSViewModel = viewModel()
+) {
+    val contacts by contactViewModel.allContacts.collectAsState(initial = emptyList())
+    val countdown by sosViewModel.countdown.collectAsState()
+    val sosState by sosViewModel.sosState.collectAsState()
+    val notifiedPhones by sosViewModel.notifiedContacts.collectAsState()
+    
+    val context = LocalContext.current
 
-    LaunchedEffect(isActive) {
-        if (!isActive) {
-            while (count > 0) {
-                delay(1000)
-                count -= 1
-            }
-            isActive = true
+    val permissionsLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val smsGranted = permissions[Manifest.permission.SEND_SMS] ?: false
+        val locationGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] ?: false
+        
+        if (smsGranted && locationGranted) {
+            sosViewModel.startSOSCountdown()
+        } else {
+            Toast.makeText(context, "Permissions required for SOS", Toast.LENGTH_LONG).show()
+            navController.popBackStack()
         }
     }
 
-    if (isActive) {
-        SOSActiveContent(navController)
-    } else {
-        SOSCountdownContent(count, navController)
+    LaunchedEffect(Unit) {
+        val hasSms = ContextCompat.checkSelfPermission(context, Manifest.permission.SEND_SMS) == PackageManager.PERMISSION_GRANTED
+        val hasLocation = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        
+        if (hasSms && hasLocation) {
+            sosViewModel.startSOSCountdown()
+        } else {
+            permissionsLauncher.launch(
+                arrayOf(Manifest.permission.SEND_SMS, Manifest.permission.ACCESS_FINE_LOCATION)
+            )
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            sosViewModel.cancelSOS()
+        }
+    }
+
+    when (sosState) {
+        is SOSStatus.CountingDown -> {
+            SOSCountdownContent(countdown, onCancel = { navController.popBackStack() })
+        }
+        is SOSStatus.Activating -> {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = GradientSOSStart)
+            }
+        }
+        is SOSStatus.Active -> {
+            SOSActiveContent(navController, contacts, notifiedPhones)
+        }
+        is SOSStatus.Error -> {
+            Box(modifier = Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.Center) {
+                Text((sosState as SOSStatus.Error).message, color = Color.Red, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+            }
+        }
+        else -> {
+            // Idle or unknown
+        }
     }
 }
 
 @Composable
-fun SOSCountdownContent(count: Int, navController: NavController) {
+fun SOSCountdownContent(count: Int, onCancel: () -> Unit) {
     val infiniteTransition = rememberInfiniteTransition(label = "countdown_ripples")
     val rippleScale1 by infiniteTransition.animateFloat(
         initialValue = 0.8f,
@@ -105,7 +157,6 @@ fun SOSCountdownContent(count: Int, navController: NavController) {
             Spacer(modifier = Modifier.height(32.dp))
 
             Box(contentAlignment = Alignment.Center) {
-                // Ripples
                 Box(
                     modifier = Modifier
                         .size(256.dp)
@@ -121,7 +172,6 @@ fun SOSCountdownContent(count: Int, navController: NavController) {
                         .background(Color.White.copy(alpha = 0.2f), CircleShape)
                 )
 
-                // Countdown Number
                 Box(
                     modifier = Modifier
                         .size(208.dp)
@@ -158,7 +208,7 @@ fun SOSCountdownContent(count: Int, navController: NavController) {
             Spacer(modifier = Modifier.height(40.dp))
 
             Button(
-                onClick = { navController.popBackStack() },
+                onClick = onCancel,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp)
@@ -178,14 +228,31 @@ fun SOSCountdownContent(count: Int, navController: NavController) {
 }
 
 @Composable
-fun SOSActiveContent(navController: NavController) {
+fun SOSActiveContent(navController: NavController, contacts: List<ContactEntity>, notifiedPhones: List<String>) {
+    val context = LocalContext.current
+    
+    val callPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            makeSOSCallDirect(context, "112")
+        }
+    }
+
+    val onEmergencyCallClick = {
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED) {
+            makeSOSCallDirect(context, "112")
+        } else {
+            callPermissionLauncher.launch(Manifest.permission.CALL_PHONE)
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .padding(20.dp)
     ) {
-        // Header Card
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(24.dp),
@@ -216,7 +283,7 @@ fun SOSActiveContent(navController: NavController) {
                         modifier = Modifier.padding(top = 8.dp)
                     )
                     Text(
-                        text = "Your location is being shared live with your trusted contacts and authorities.",
+                        text = "Your location and battery status have been sent to your trusted contacts.",
                         color = Color.White.copy(alpha = 0.9f),
                         fontSize = 14.sp,
                         lineHeight = 20.sp,
@@ -228,7 +295,6 @@ fun SOSActiveContent(navController: NavController) {
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Location Status
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -256,23 +322,17 @@ fun SOSActiveContent(navController: NavController) {
                     ), label = "pingAlpha"
                 )
                 Box(
-                    modifier = Modifier
-                        .size(12.dp)
-                        .scale(pingScale)
-                        .alpha(pingAlpha)
-                        .background(Color(0xFF22C55E), CircleShape)
+                    modifier = Modifier.size(12.dp).scale(pingScale).alpha(pingAlpha).background(Color(0xFF22C55E), CircleShape)
                 )
                 Box(
-                    modifier = Modifier
-                        .size(12.dp)
-                        .background(Color(0xFF22C55E), CircleShape)
+                    modifier = Modifier.size(12.dp).background(Color(0xFF22C55E), CircleShape)
                 )
             }
             Spacer(modifier = Modifier.width(12.dp))
             Column {
                 Text(text = "Live location sharing", fontWeight = FontWeight.Bold, fontSize = 14.sp)
                 Text(
-                    text = "MG Road, Bengaluru · accuracy 6 m",
+                    text = "Location shared with emergency contacts",
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 12.sp
                 )
@@ -294,22 +354,29 @@ fun SOSActiveContent(navController: NavController) {
             contentPadding = PaddingValues(vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            itemsIndexed(emergencyContacts) { index, contact ->
-                ContactNotifyItem(contact)
+            if (contacts.isEmpty()) {
+                item {
+                    Text(
+                        "No trusted contacts to notify. Please add them in the Contacts screen.",
+                        color = MaterialTheme.colorScheme.error,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                }
+            } else {
+                items(contacts) { contact ->
+                    ContactNotifyItem(contact, notifiedPhones.contains(contact.phone))
+                }
             }
         }
 
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 16.dp),
+            modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Button(
-                onClick = { /* Handle call */ },
-                modifier = Modifier
-                    .weight(1f)
-                    .height(56.dp),
+                onClick = onEmergencyCallClick,
+                modifier = Modifier.weight(1f).height(56.dp),
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFDC2626))
             ) {
@@ -320,9 +387,7 @@ fun SOSActiveContent(navController: NavController) {
             
             OutlinedButton(
                 onClick = { navController.navigate(Screen.Home.route) },
-                modifier = Modifier
-                    .weight(1f)
-                    .height(56.dp),
+                modifier = Modifier.weight(1f).height(56.dp),
                 shape = RoundedCornerShape(16.dp),
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
             ) {
@@ -336,8 +401,19 @@ fun SOSActiveContent(navController: NavController) {
     }
 }
 
+fun makeSOSCallDirect(context: Context, phoneNumber: String) {
+    try {
+        val intent = Intent(Intent.ACTION_CALL).apply {
+            data = Uri.parse("tel:$phoneNumber")
+        }
+        context.startActivity(intent)
+    } catch (e: SecurityException) {
+        Toast.makeText(context, "Permission denied", Toast.LENGTH_SHORT).show()
+    }
+}
+
 @Composable
-fun ContactNotifyItem(contact: Contact) {
+fun ContactNotifyItem(contact: ContactEntity, isNotified: Boolean) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -349,30 +425,32 @@ fun ContactNotifyItem(contact: Contact) {
         Box(
             modifier = Modifier
                 .size(40.dp)
-                .background(contact.tint, CircleShape),
+                .background(Color(contact.startColor.toInt()), CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            Text(text = contact.initial, fontWeight = FontWeight.Bold, color = Color(0xFF322930))
+            Text(text = contact.initial, fontWeight = FontWeight.Bold, color = Color.White)
         }
         Spacer(modifier = Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(text = contact.name, fontWeight = FontWeight.Bold, fontSize = 14.sp)
             Text(text = contact.phone, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 12.sp)
         }
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                imageVector = Icons.Default.Check,
-                contentDescription = null,
-                tint = Color(0xFF22C55E),
-                modifier = Modifier.size(16.dp)
-            )
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(
-                text = "Notified",
-                color = Color(0xFF22C55E),
-                fontWeight = FontWeight.Bold,
-                fontSize = 12.sp
-            )
+        if (isNotified) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = null,
+                    tint = Color(0xFF22C55E),
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = "Notified",
+                    color = Color(0xFF22C55E),
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 12.sp
+                )
+            }
         }
     }
 }

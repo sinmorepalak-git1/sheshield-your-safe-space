@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.sheshield.navigation.Screen
+import com.example.sheshield.repository.AuthRepository
 import com.example.sheshield.ui.theme.GradientPrimaryEnd
 import com.example.sheshield.ui.theme.GradientPrimaryStart
 import kotlinx.coroutines.delay
@@ -48,10 +49,18 @@ fun SplashScreen(navController: NavController) {
         ), label = "rippleAlpha"
     )
 
+    val authRepository = AuthRepository()
+
     LaunchedEffect(Unit) {
         delay(2200)
-        navController.navigate(Screen.Onboarding.route) {
-            popUpTo(Screen.Splash.route) { inclusive = true }
+        if (authRepository.currentUser != null) {
+            navController.navigate(Screen.Home.route) {
+                popUpTo(Screen.Splash.route) { inclusive = true }
+            }
+        } else {
+            navController.navigate(Screen.Onboarding.route) {
+                popUpTo(Screen.Splash.route) { inclusive = true }
+            }
         }
     }
 
@@ -113,7 +122,13 @@ fun SplashScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(64.dp))
 
-            TextButton(onClick = { navController.navigate(Screen.Onboarding.route) }) {
+            TextButton(onClick = {
+                if (authRepository.currentUser != null) {
+                    navController.navigate(Screen.Home.route)
+                } else {
+                    navController.navigate(Screen.Onboarding.route)
+                }
+            }) {
                 Text(
                     text = "TAP TO CONTINUE",
                     color = Color.White.copy(alpha = 0.7f),
